@@ -43,6 +43,8 @@ else
         regiones = await apiClient.GetRegiones();
     }
 
+    // Implementamos EventHandler como una property, dado que hay conflictos en MatBlazor al usar @onchange en conjunto a @bind-Value
+    // que son los ejemplos que dan en la documentación, por lo que realizamos todos los cambios necesarios con el setter.
     public string NombreRegionSeleccionada
     {
         get { return nombreRegionSeleccionada; }
