@@ -1,0 +1,73 @@
+﻿@page "/"
+@using Tarea.Shared.Interfaces;
+@using Tarea.Shared.ApiModels;
+
+@inject IApiClient apiClient
+
+<h1>Hello, world!</h1>
+
+
+@if (regiones != null)
+{
+    <MatSelect Label="Seleccione una región" @bind-Value="@NombreRegionSeleccionada" Outlined="true" FullWidth="true">
+        @foreach (var item in regiones)
+            {
+            <MatOptionString Value="@item.Nombre">@item.Nombre</MatOptionString>
+            }
+    </MatSelect>
+
+    if (comunas.Length > 0)
+    {
+        <MatSelect Class="mt-3" Label="Seleccione una comuna" @bind-Value="@comunaSeleccionada" Outlined="true" FullWidth="true">
+            @foreach (var item in comunas)
+                    {
+                <MatOptionString Value="@item">@item</MatOptionString>
+                    }
+        </MatSelect>
+    }
+}
+else
+{
+    <p><em>Loading...</em></p>
+}
+
+@code {
+    private ICollection<Region> regiones;
+    private string[] comunas = new string[] { };
+    private Region regionSeleccionada;
+    private string nombreRegionSeleccionada;
+    private string comunaSeleccionada;
+
+    protected override async Task OnInitializedAsync()
+    {
+        regiones = await apiClient.GetRegiones();
+    }
+
+    // Implementamos EventHandler como una property, dado que hay conflictos en MatBlazor al usar @onchange en conjunto a @bind-Value
+    // que son los ejemplos que dan en la documentación, por lo que realizamos todos los cambios necesarios con el setter.
+    public string NombreRegionSeleccionada
+    {
+        get { return nombreRegionSeleccionada; }
+        set
+        {
+            LimpiarComunas();
+            nombreRegionSeleccionada = value;
+            SeleccionarRegion(value);
+            comunas = GetComunas(value);
+        }
+    }
+
+    private void SeleccionarRegion(string nombre) => regionSeleccionada = regiones.Single(x => x.Nombre == nombre);
+
+    private string[] GetComunas(string region) => regiones
+        .Where(x => x.Nombre == region)
+        .Select(y => y.Comunas)
+        .First()
+        .ToArray();
+
+    private void LimpiarComunas()
+    {
+        comunaSeleccionada = "";
+        Array.Clear(comunas, 0, comunas.Length);
+    }
+}
